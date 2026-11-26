@@ -37,6 +37,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Terceros
+    "rest_framework",
+    # Propias
+    "weather",
 ]
 
 MIDDLEWARE = [
@@ -125,3 +129,5 @@ MAILERS = {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
+   
