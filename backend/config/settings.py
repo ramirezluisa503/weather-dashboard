@@ -45,12 +45,14 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "channels",
+    "corsheaders",
     # Propias
     "weather",
 
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -202,4 +204,8 @@ LOGGING = {
         "weather": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
 }
-   
+
+# CORS: orígenes (frontends) autorizados a consumir la API desde el navegador
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ALLOWED_ORIGINS", "http://localhost:5173"
+).split(",")
