@@ -34,6 +34,7 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").sp
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     # Terceros
     "rest_framework",
     "drf_spectacular",
+    "channels",
     # Propias
     "weather",
 
@@ -76,7 +78,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
-
+ASGI_APPLICATION = "config.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
@@ -103,6 +105,24 @@ CACHES = {
         "TIMEOUT": int(os.environ.get("WEATHER_CACHE_TTL_SECONDS", "600")),
     }
 }
+
+# Channels (WebSockets): Redis como channel layer
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                {
+                    "address": os.environ.get("REDIS_URL", "redis://localhost:6379/0"),
+                    # channels_redis espera hasta 5 s por mensajes nuevos; el cliente redis
+                    # corta a los 5 s por defecto. Con 10 s la espera normal no se confunde con una falla.
+                    "socket_timeout": 10,
+                }
+            ]
+        },
+    }
+}
+
 
 # Django REST Framework
 REST_FRAMEWORK = {

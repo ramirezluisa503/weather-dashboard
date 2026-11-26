@@ -5,6 +5,15 @@ from django.core.cache import cache
 from . import repositories
 from .openweather_client import CityNotFoundError, OpenWeatherError, fetch_current_weather
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.core.cache import cache
+
+from . import repositories
+from .consumers import WEATHER_GROUP
+from .openweather_client import CityNotFoundError, OpenWeatherError, fetch_current_weather
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,6 +39,19 @@ def _to_dict(record) -> dict:
         "wind_speed": record.wind_speed,
         "timestamp": record.timestamp.isoformat(),
     }
+
+
+def _notify_new_weather(weather: dict) -> None:
+    """Avisa por WebSocket a los navegadores conectados. Si falla, no rompe la petición."""
+    try:
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            WEATHER_GROUP,
+            {"type": "weather.update", "data": {"event": "weather_created", "weather": weather}},
+        )
+    except Exception:
+        logger.exception("No se pudo emitir el evento WebSocket city=%s", weather.get("city"))
+
 
 
 def get_current_weather(city: str) -> dict:
@@ -59,15 +81,21 @@ def get_current_weather(city: str) -> dict:
             raise WeatherUnavailableError(f"No hay datos disponibles para {city}") from exc
         return {**_to_dict(latest), "source": "database"}
 
-    # 4. Guardar en la BD y en la caché
+        # 4. Guardar en la BD y en la caché
     data["city"] = city
     record, created = repositories.save_weather(data)
-    if created:
-        logger.info("Nuevo registro id=%s city=%s", record.id, city)
-
     result = _to_dict(record)
     cache.set(key, result)
+
+    # 5. Tiempo real: avisar solo si el registro es NUEVO
+    if created:
+        logger.info("Nuevo registro id=%s city=%s", record.id, city)
+        _notify_new_weather(result)
+
     return {**result, "source": "api"}
+
+
+
 
 
 def list_history(city: str | None = None):
