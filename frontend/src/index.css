@@ -15,21 +15,32 @@ body {
   background: #0f172a;
 }
 
-/* ===== Fondo con foto según la temperatura ===== */
+/* ===== Fondo dividido: una foto por ciudad según su temperatura ===== */
 .background {
   position: fixed;
   inset: 0;
   z-index: -1;
+}
+
+.background__layer {
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
   transition: background-image 0.8s ease;
+}
+
+/* La foto de la primera ciudad se desvanece de izquierda a derecha (fundido en el centro) */
+.background__layer--first {
+  -webkit-mask-image: linear-gradient(to right, #000 35%, transparent 65%);
+  mask-image: linear-gradient(to right, #000 35%, transparent 65%);
 }
 
 .background::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.8));
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.15), rgba(15, 23, 42, 0.5));
 }
 
 /* ===== Vidrio esmerilado (glassmorphism) ===== */
@@ -185,4 +196,64 @@ body {
   gap: 8px;
   font-size: 0.85rem;
   opacity: 0.8;
+}
+
+/* ===== Selector de ciudades ===== */
+.city-selector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.city-selector__input {
+  flex: 1 1 200px;
+}
+
+.city-selector__error {
+  flex-basis: 100%;
+  margin: 0;
+  color: #fca5a5;
+  font-size: 0.9rem;
+}
+
+/* Mientras cargan las ciudades nuevas, las tarjetas actuales se atenúan */
+.cards.is-loading {
+  opacity: 0.55;
+  transition: opacity 0.3s ease;
+}
+/* ===== Responsive: pantallas pequeñas (celulares) ===== */
+@media (max-width: 600px) {
+  /* En celular las tarjetas van una encima de otra: el fondo se divide arriba / abajo */
+  .background__layer--first {
+    -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 65%);
+    mask-image: linear-gradient(to bottom, #000 35%, transparent 65%);
+  }
+
+  .app {
+    padding: 16px 12px 32px;
+    gap: 16px;
+  }
+
+  .header {
+    padding: 16px 18px;
+  }
+
+  .city-selector {
+    padding: 14px;
+  }
+
+  /* El botón Comparar ocupa todo el ancho para tocarlo fácil con el dedo */
+  .city-selector > .ant-btn-primary {
+    flex-basis: 100%;
+  }
+
+  .weather-card {
+    padding: 20px;
+  }
+
+  .weather-card__metrics {
+    gap: 10px;
+  }
 }
