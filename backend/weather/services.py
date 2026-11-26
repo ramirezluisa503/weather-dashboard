@@ -68,3 +68,10 @@ def get_current_weather(city: str) -> dict:
     result = _to_dict(record)
     cache.set(key, result)
     return {**result, "source": "api"}
+
+
+def list_history(city: str | None = None):
+    """Histórico (QuerySet), opcionalmente filtrado por ciudad normalizada."""
+    if city:
+        city = normalize_city(city)
+    return repositories.list_weather(city)
