@@ -102,6 +102,12 @@ CACHES = {
     }
 }
 
+# OpenWeather
+OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
+
+
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 
