@@ -42,8 +42,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Terceros
     "rest_framework",
+    "drf_spectacular",
     # Propias
     "weather",
+
 ]
 
 MIDDLEWARE = [
@@ -100,6 +102,18 @@ CACHES = {
         },
         "TIMEOUT": int(os.environ.get("WEATHER_CACHE_TTL_SECONDS", "600")),
     }
+}
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# Documentación OpenAPI / Swagger
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Weather Dashboard API",
+    "DESCRIPTION": "Compara el clima de dos ciudades. Caché Redis (TTL 10 min) y fallback a PostgreSQL si OpenWeather falla.",
+    "VERSION": "1.0.0",
 }
 
 # OpenWeather

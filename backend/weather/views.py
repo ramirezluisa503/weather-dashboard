@@ -1,6 +1,8 @@
 import csv
 
 from django.http import StreamingHttpResponse
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,7 +12,16 @@ from .pagination import StandardPagination
 from .serializers import CityQuerySerializer, DashboardQuerySerializer, WeatherDataSerializer
 from .services import CityNotFoundError, WeatherUnavailableError
 
+# Carácter invisible (BOM) al inicio del CSV para que Excel lo abra como UTF-8 (tildes correctas)
+UTF8_BOM = "\ufeff"
 
+
+@extend_schema_view(
+    get=extend_schema(
+        summary="Histórico paginado",
+        parameters=[CityQuerySerializer],
+    )
+)
 class WeatherListView(generics.ListAPIView):
     """GET /api/weather/?city=&page=&page_size= : histórico paginado."""
 
@@ -26,6 +37,16 @@ class WeatherListView(generics.ListAPIView):
 class DashboardDataView(APIView):
     """GET /api/dashboard-data/?city1=&city2= : clima actual + histórico de dos ciudades."""
 
+    @extend_schema(
+        summary="Datos del dashboard para dos ciudades",
+        parameters=[DashboardQuerySerializer],
+        responses={
+            200: OpenApiTypes.OBJECT,
+            400: OpenApiResponse(description="Parámetros inválidos"),
+            404: OpenApiResponse(description="Ciudad no encontrada"),
+            503: OpenApiResponse(description="OpenWeather no disponible y sin datos guardados"),
+        },
+    )
     def get(self, request):
         params = DashboardQuerySerializer(data=request.query_params)
         params.is_valid(raise_exception=True)
@@ -52,6 +73,11 @@ class _Echo:
 class WeatherExportCSVView(APIView):
     """GET /api/weather/export/?city= : descarga el histórico en CSV (streaming)."""
 
+    @extend_schema(
+        summary="Exportar histórico en CSV",
+        parameters=[CityQuerySerializer],
+        responses={(200, "text/csv"): OpenApiTypes.STR},
+    )
     def get(self, request):
         params = CityQuerySerializer(data=request.query_params)
         params.is_valid(raise_exception=True)
@@ -66,6 +92,6 @@ class WeatherExportCSVView(APIView):
     @staticmethod
     def _csv_lines(rows):
         writer = csv.writer(_Echo())
-        yield "﻿"
+        yield UTF8_BOM
         for row in rows:
             yield writer.writerow(row)
