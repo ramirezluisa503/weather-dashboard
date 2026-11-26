@@ -42,8 +42,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Terceros
     "rest_framework",
+    "drf_spectacular",
     # Propias
     "weather",
+
 ]
 
 MIDDLEWARE = [
@@ -90,6 +92,35 @@ DATABASES = {
     }
 }
 
+# Cache (Redis)
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.environ.get("REDIS_URL", "redis://localhost:6379/0"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "TIMEOUT": int(os.environ.get("WEATHER_CACHE_TTL_SECONDS", "600")),
+    }
+}
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# Documentación OpenAPI / Swagger
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Weather Dashboard API",
+    "DESCRIPTION": "Compara el clima de dos ciudades. Caché Redis (TTL 10 min) y fallback a PostgreSQL si OpenWeather falla.",
+    "VERSION": "1.0.0",
+}
+
+# OpenWeather
+OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
+
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
@@ -113,7 +144,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es"
 
 TIME_ZONE = "UTC"
 
@@ -137,4 +168,18 @@ MAILERS = {
     },
 }
 
+# Logging: logs claros en la consola (los muestra "docker compose logs")
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "{asctime} {levelname} {name}: {message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+    },
+    "loggers": {
+        "weather": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}
    
