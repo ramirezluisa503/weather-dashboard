@@ -75,3 +75,14 @@ def list_history(city: str | None = None):
     if city:
         city = normalize_city(city)
     return repositories.list_weather(city)
+
+HISTORY_LIMIT = 24
+
+def get_dashboard_data(city1: str, city2: str) -> dict:
+    """Datos del dashboard para dos ciudades: clima actual (cards) + histórico (gráficos)."""
+    cities = []
+    for city in (city1, city2):
+        current = get_current_weather(city)
+        history = repositories.get_recent_by_city(current["city"], HISTORY_LIMIT)
+        cities.append({"city": current["city"], "current": current, "history": history})
+    return {"cities": cities}

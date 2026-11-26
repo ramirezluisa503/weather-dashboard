@@ -28,3 +28,12 @@ def list_weather(city: str | None = None):
     if city:
         queryset = queryset.filter(city=city)
     return queryset
+
+def get_recent_by_city(city: str, limit: int = 24) -> list[dict]:
+    """Últimos `limit` registros de una ciudad, en orden cronológico (para gráficos)."""
+    rows = (
+        WeatherData.objects.filter(city=city)
+        .order_by("-timestamp")
+        .values("timestamp", "temperature", "humidity", "wind_speed")[:limit]
+    )
+    return list(rows)[::-1]
