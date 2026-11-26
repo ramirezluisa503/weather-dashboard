@@ -154,4 +154,18 @@ MAILERS = {
     },
 }
 
+# Logging: logs claros en la consola (los muestra "docker compose logs")
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "{asctime} {levelname} {name}: {message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+    },
+    "loggers": {
+        "weather": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}
    
