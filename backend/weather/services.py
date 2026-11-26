@@ -86,3 +86,14 @@ def get_dashboard_data(city1: str, city2: str) -> dict:
         history = repositories.get_recent_by_city(current["city"], HISTORY_LIMIT)
         cities.append({"city": current["city"], "current": current, "history": history})
     return {"cities": cities}
+
+EXPORT_FIELDS = ["id", "city", "temperature", "humidity", "wind_speed", "timestamp"]
+
+
+def iter_export_rows(city: str | None = None):
+    """Genera las filas del CSV (encabezado + datos), leyendo la BD por bloques."""
+    yield EXPORT_FIELDS
+    rows = list_history(city).values_list(*EXPORT_FIELDS)
+    for row in rows.iterator(chunk_size=1000):
+        *values, timestamp = row
+        yield [*values, timestamp.isoformat()]

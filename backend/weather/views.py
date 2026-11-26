@@ -1,3 +1,6 @@
+import csv
+
+from django.http import StreamingHttpResponse
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +22,7 @@ class WeatherListView(generics.ListAPIView):
         params.is_valid(raise_exception=True)
         return services.list_history(params.validated_data.get("city"))
 
+
 class DashboardDataView(APIView):
     """GET /api/dashboard-data/?city1=&city2= : clima actual + histórico de dos ciudades."""
 
@@ -36,3 +40,32 @@ class DashboardDataView(APIView):
             return Response({"detail": str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return Response(data)
+
+
+class _Echo:
+    """Pseudo-archivo: csv.writer escribe aquí y recibimos cada línea ya formateada."""
+
+    def write(self, value):
+        return value
+
+
+class WeatherExportCSVView(APIView):
+    """GET /api/weather/export/?city= : descarga el histórico en CSV (streaming)."""
+
+    def get(self, request):
+        params = CityQuerySerializer(data=request.query_params)
+        params.is_valid(raise_exception=True)
+        rows = services.iter_export_rows(params.validated_data.get("city"))
+
+        response = StreamingHttpResponse(
+            self._csv_lines(rows), content_type="text/csv; charset=utf-8"
+        )
+        response["Content-Disposition"] = 'attachment; filename="weather_data.csv"'
+        return response
+
+    @staticmethod
+    def _csv_lines(rows):
+        writer = csv.writer(_Echo())
+        yield "﻿"
+        for row in rows:
+            yield writer.writerow(row)
