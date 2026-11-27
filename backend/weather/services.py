@@ -1,18 +1,14 @@
 import logging
-
-from django.core.cache import cache
-
-from . import repositories
-from .openweather_client import CityNotFoundError, OpenWeatherError, fetch_current_weather
+from concurrent.futures import ThreadPoolExecutor
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.core.cache import cache
+from django.db import connection
 
 from . import repositories
 from .consumers import WEATHER_GROUP
 from .openweather_client import CityNotFoundError, OpenWeatherError, fetch_current_weather
-
 
 logger = logging.getLogger(__name__)
 
@@ -106,14 +102,30 @@ def list_history(city: str | None = None):
 
 HISTORY_LIMIT = 24
 
+
+def _get_current_weather_in_thread(city: str) -> dict:
+    """Versión para ejecutar en un hilo: cierra la conexión a la BD que ese hilo abre."""
+    try:
+        return get_current_weather(city)
+    finally:
+        connection.close()
+
+
 def get_dashboard_data(city1: str, city2: str) -> dict:
-    """Datos del dashboard para dos ciudades: clima actual (cards) + histórico (gráficos)."""
+    """Datos del dashboard para dos ciudades: clima actual (cards) + histórico (gráficos).
+
+    El clima actual de las dos ciudades se consulta EN PARALELO (dos hilos): la mayor parte
+    del tiempo es espera de red a OpenWeather, así que el tiempo total baja casi a la mitad.
+    """
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        currents = list(executor.map(_get_current_weather_in_thread, (city1, city2)))
+
     cities = []
-    for city in (city1, city2):
-        current = get_current_weather(city)
+    for current in currents:
         history = repositories.get_recent_by_city(current["city"], HISTORY_LIMIT)
         cities.append({"city": current["city"], "current": current, "history": history})
     return {"cities": cities}
+
 
 EXPORT_FIELDS = ["id", "city", "temperature", "humidity", "wind_speed", "timestamp"]
 
