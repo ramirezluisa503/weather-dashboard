@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, Spin } from 'antd';
 import Background from './components/Background';
 import CitySelector from './components/CitySelector';
+import ComparisonChart from './components/ComparisonChart';
 import Header from './components/Header';
 import WeatherCard from './components/WeatherCard';
 import useDashboard from './hooks/useDashboard';
@@ -50,11 +51,14 @@ export default function App() {
 
         {/* En las cargas siguientes, las tarjetas actuales se atenúan */}
         {data && (
-          <section className={loading ? 'cards is-loading' : 'cards'}>
-            {data.cities.map((city) => (
-              <WeatherCard key={city.city} weather={city.current} />
-            ))}
-          </section>
+          <>
+            <section className={loading ? 'cards is-loading' : 'cards'}>
+              {data.cities.map((city) => (
+                <WeatherCard key={city.city} weather={city.current} />
+              ))}
+            </section>
+            <ComparisonChart cities={data.cities} />
+          </>
         )}
       </main>
     </>

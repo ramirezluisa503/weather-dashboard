@@ -51,6 +51,9 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  /* Sombra suave del texto: lo "despega" del fondo cuando la foto es clara (niebla, nieve).
+     text-shadow se hereda, así que aplica a todo el texto dentro del vidrio. */
+  text-shadow: 0 1px 3px rgba(15, 23, 42, 0.55);
 }
 
 /* ===== Layout ===== */
@@ -81,7 +84,13 @@ body {
 
 .header .subtitle {
   margin: 4px 0 0;
-  opacity: 0.75;
+  opacity: 0.9;
+}
+
+/* La cabecera queda sobre la parte más clara de las fotos (el cielo): sombra un poco más marcada */
+.header h1,
+.header .subtitle {
+  text-shadow: 0 1px 6px rgba(15, 23, 42, 0.75);
 }
 
 /* ===== Indicador "En vivo" ===== */
@@ -148,7 +157,8 @@ body {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  /* Base oscura translúcida para que la etiqueta se lea también sobre fondos claros */
+  background: color-mix(in srgb, var(--accent) 20%, rgba(15, 23, 42, 0.55));
 }
 
 .weather-card__temp {
@@ -223,6 +233,27 @@ body {
   opacity: 0.55;
   transition: opacity 0.3s ease;
 }
+
+/* ===== Gráfico de comparación ===== */
+.chart-card {
+  padding: 20px 24px;
+}
+
+.chart-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.chart-card__header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+
 /* ===== Responsive: pantallas pequeñas (celulares) ===== */
 @media (max-width: 600px) {
   /* En celular las tarjetas van una encima de otra: el fondo se divide arriba / abajo */
