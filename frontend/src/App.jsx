@@ -72,10 +72,9 @@ export default function App() {
 
           {/* Spinner grande solo en la primera carga (todavía no hay datos) */}
           {!data && loading && (
-            <div className="glass" style={{ padding: 48, textAlign: 'center' }}>
-              <Spin size="large" description="Consultando el clima...">
-                <div style={{ minHeight: 40 }} />
-              </Spin>
+            <div className="glass loading-card">
+              <Spin size="large" />
+              <p>Consultando el clima...</p>
             </div>
           )}
 

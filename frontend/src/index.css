@@ -387,6 +387,20 @@ body {
   width: 220px;
 }
 
+/* ===== Tarjeta de carga inicial ===== */
+.loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px;
+}
+
+.loading-card p {
+  margin: 0;
+  opacity: 0.85;
+}
+
 /* ===== Responsive: pantallas pequeñas (celulares) ===== */
 @media (max-width: 600px) {
   /* En celular las tarjetas van una encima de otra: el fondo se divide arriba / abajo */
