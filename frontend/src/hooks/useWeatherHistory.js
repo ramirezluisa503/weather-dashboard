@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { getWeatherHistory } from '../api/weatherApi';
 
 // Pide una página del histórico cada vez que cambian el filtro, la página o el tamaño de página
-export default function useWeatherHistory({ city, page, pageSize }) {
+export default function useWeatherHistory({ city, page, pageSize, refreshKey = 0 }) {
   const [result, setResult] = useState({
     data: null,
     error: null,
@@ -10,7 +10,8 @@ export default function useWeatherHistory({ city, page, pageSize }) {
   });
   const [reloadCount, setReloadCount] = useState(0);
 
-  const requestKey = `${city}|${page}|${pageSize}|${reloadCount}`;
+  // refreshKey cambia cuando llega un dato nuevo por WebSocket → se vuelve a pedir la misma página
+  const requestKey = `${city}|${page}|${pageSize}|${reloadCount}|${refreshKey}`;
 
   useEffect(() => {
     let cancelled = false;

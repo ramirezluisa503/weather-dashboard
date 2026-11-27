@@ -40,7 +40,7 @@ const COLUMNS = [
   },
 ];
 
-export default function HistoryTable() {
+export default function HistoryTable({ refreshKey }) {
   const [city, setCity] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -48,6 +48,7 @@ export default function HistoryTable() {
     city,
     page,
     pageSize,
+    refreshKey,
   });
 
   const handleSearch = (value) => {

@@ -3,8 +3,14 @@ const VIEWS = [
   { value: 'history', label: 'Histórico' },
 ];
 
+const STATUS_LABELS = {
+  open: 'En vivo',
+  reconnecting: 'Reconectando…',
+  connecting: 'Conectando…',
+};
+
 // Navbar tipo cápsula: logo a la izquierda, enlaces de las vistas al centro y estado en vivo a la derecha
-export default function Navbar({ view, onViewChange }) {
+export default function Navbar({ view, onViewChange, socketStatus }) {
   return (
     <nav className="navbar" aria-label="Navegación principal">
       <div className="navbar__brand">
@@ -32,9 +38,10 @@ export default function Navbar({ view, onViewChange }) {
         })}
       </ul>
 
-      <span className="live-pill">
-        <span className="live-dot" />
-        <span className="live-pill__text">En vivo</span>
+      {/* Estado real de la conexión WebSocket */}
+      <span className="live-pill" title={STATUS_LABELS[socketStatus]}>
+        <span className={`live-dot live-dot--${socketStatus}`} />
+        <span className="live-pill__text">{STATUS_LABELS[socketStatus]}</span>
       </span>
     </nav>
   );
