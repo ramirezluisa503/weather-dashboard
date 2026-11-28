@@ -155,6 +155,8 @@ REST_FRAMEWORK = {
     # Límite de peticiones solo para las views con throttle_scope (el agente consume cupo del LLM)
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.ScopedRateThrottle"],
     "DEFAULT_THROTTLE_RATES": {"agent": "10/min"},
+    # Proxies delante de Django (Caddy en producción = 1): el límite usa la IP real del usuario
+    "NUM_PROXIES": int(os.environ.get("DJANGO_NUM_PROXIES", "0")),
 }
 
 # Documentación OpenAPI / Swagger
