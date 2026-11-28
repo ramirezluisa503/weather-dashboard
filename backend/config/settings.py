@@ -152,6 +152,9 @@ CELERY_BEAT_SCHEDULE = {
 # Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Límite de peticiones solo para las views con throttle_scope (el agente consume cupo del LLM)
+    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.ScopedRateThrottle"],
+    "DEFAULT_THROTTLE_RATES": {"agent": "10/min"},
 }
 
 # Documentación OpenAPI / Swagger
