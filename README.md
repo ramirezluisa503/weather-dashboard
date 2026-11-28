@@ -292,7 +292,7 @@ No implementada: siguiendo el criterio de la prueba de priorizar *"un alcance m�
 | Martes 24 nov | ~2 h | Preparación: entorno, API key, configuración, decisión de arquitectura |
 | Miércoles 25 nov | ~2 h | Proyecto Django, modelo, configuración por variables de entorno |
 | Jueves 26 nov | ~10 h | Docker, backend completo (caché, servicio, endpoints, CSV, Swagger, WebSockets) y frontend |
-| Viernes 27 nov | ~5 h | Frontend en Docker, consultas en paralelo, tests, Celery, diagrama, README, diseño minimalista e ícono del estado del cielo |
+| Viernes 27 nov | ~6 h 45 min | Frontend en Docker, consultas en paralelo, tests, Celery, diagrama, README, diseño minimalista e ícono del estado del cielo; inicio de la Parte B (LiteLLM, modelos del chat, tools) |
 | Sábado 28 / Domingo 29 nov | [pendiente] | [pendiente] |
 | **Total** | **[pendiente]** | |
 

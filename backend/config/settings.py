@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "corsheaders",
     # Propias
     "weather",
+    "agent",
 
 ]
 
@@ -151,6 +152,9 @@ CELERY_BEAT_SCHEDULE = {
 # Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Límite de peticiones solo para las views con throttle_scope (el agente consume cupo del LLM)
+    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.ScopedRateThrottle"],
+    "DEFAULT_THROTTLE_RATES": {"agent": "10/min"},
 }
 
 # Documentación OpenAPI / Swagger
@@ -164,7 +168,14 @@ SPECTACULAR_SETTINGS = {
 OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
 
 
-
+# Agente (Parte B): modelo y credenciales del LLM, solo en el backend
+LLM_MODEL = os.environ.get("LLM_MODEL", "gemini/gemini-3.5-flash-lite")
+LLM_API_KEY = os.environ.get("LLM_API_KEY", "")
+LLM_FALLBACK_MODELS = [
+    model.strip()
+    for model in os.environ.get("LLM_FALLBACK_MODELS", "").split(",")
+    if model.strip()
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators

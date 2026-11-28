@@ -41,3 +41,14 @@ def get_recent_by_city(city: str, limit: int = 24) -> list[dict]:
         .values("timestamp", "temperature", "humidity", "wind_speed")[:limit]
     )
     return list(rows)[::-1]
+
+def filter_weather(city: str | None = None, start=None, end=None):
+    """Mediciones filtradas por ciudad y/o rango de fechas (QuerySet, más reciente primero)."""
+    queryset = WeatherData.objects.all()
+    if city:
+        queryset = queryset.filter(city=city)
+    if start:
+        queryset = queryset.filter(timestamp__gte=start)
+    if end:
+        queryset = queryset.filter(timestamp__lte=end)
+    return queryset
