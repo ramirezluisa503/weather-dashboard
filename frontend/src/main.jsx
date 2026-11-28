@@ -10,16 +10,11 @@ createRoot(document.getElementById('root')).render(
     <ConfigProvider
       locale={esES}
       theme={{
-        algorithm: theme.darkAlgorithm,
-        token: { colorPrimary: '#38bdf8', borderRadius: 12 },
-        // La tabla oscura de Ant Design trae fondo sólido: la hacemos transparente para que combine con el vidrio
+        // Tema claro y minimalista; azul cielo como color principal
+        algorithm: theme.defaultAlgorithm,
+        token: { colorPrimary: '#0284c7', borderRadius: 12 },
         components: {
-          Table: {
-            colorBgContainer: 'transparent',
-            headerBg: 'rgba(255, 255, 255, 0.08)',
-            rowHoverBg: 'rgba(255, 255, 255, 0.06)',
-            borderColor: 'rgba(255, 255, 255, 0.12)',
-          },
+          Table: { headerBg: '#f8fafc' },
         },
       }}
     >

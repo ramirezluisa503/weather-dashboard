@@ -59,7 +59,7 @@ export default function CitySelector({
 
   return (
     <form
-      className="city-selector glass"
+      className="city-selector panel"
       onSubmit={handleSubmit}
     >
       <AutoComplete

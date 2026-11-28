@@ -1,5 +1,6 @@
 import { Tag } from 'antd';
 import { getTemperatureTheme } from '../utils/weatherTheme';
+import { getWeatherIcon } from '../utils/weatherIcon';
 
 // Formatea las fechas en español y en la hora local del navegador (el backend guarda en UTC)
 const dateFormatter = new Intl.DateTimeFormat('es-CO', {
@@ -9,10 +10,12 @@ const dateFormatter = new Intl.DateTimeFormat('es-CO', {
 
 export default function WeatherCard({ weather }) {
   const theme = getTemperatureTheme(weather.temperature);
+  // Ícono según el estado REAL del cielo que reporta OpenWeather (no según la temperatura)
+  const icon = getWeatherIcon(weather.icon);
 
   return (
     <article
-      className="weather-card glass"
+      className="weather-card panel"
       style={{ '--accent': theme.accent }}
     >
       <header className="weather-card__header">
@@ -20,7 +23,22 @@ export default function WeatherCard({ weather }) {
         <span className="theme-pill">{theme.label}</span>
       </header>
 
-      <p className="weather-card__temp">{weather.temperature.toFixed(1)}°C</p>
+      <div className="weather-card__temp-row">
+        <p className="weather-card__temp">{weather.temperature.toFixed(1)}°C</p>
+        {icon && (
+          <span
+            className="weather-card__icon"
+            role="img"
+            aria-label={weather.description}
+            title={weather.description}
+          >
+            {icon}
+          </span>
+        )}
+      </div>
+      {weather.description && (
+        <p className="weather-card__description">{weather.description}</p>
+      )}
 
       <div className="weather-card__metrics">
         <div className="metric">
