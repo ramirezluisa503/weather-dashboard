@@ -164,6 +164,9 @@ SPECTACULAR_SETTINGS = {
 OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "")
 
 
+# Agente (Parte B): modelo y credenciales del LLM, solo en el backend
+LLM_MODEL = os.environ.get("LLM_MODEL", "gemini/gemini-3.5-flash-lite")
+LLM_API_KEY = os.environ.get("LLM_API_KEY", "")
 
 
 # Password validation
