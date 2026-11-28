@@ -23,7 +23,8 @@ def fetch_current_weather(city: str) -> dict:
     if not settings.OPENWEATHER_API_KEY:
         raise OpenWeatherError("OPENWEATHER_API_KEY no está configurada")
 
-    params = {"q": city, "units": "metric", "appid": settings.OPENWEATHER_API_KEY}
+    # lang=es → la descripción del cielo llega en español ("nubes dispersas")
+    params = {"q": city, "units": "metric", "lang": "es", "appid": settings.OPENWEATHER_API_KEY}
 
     try:
         response = requests.get(BASE_URL, params=params, timeout=TIMEOUT_SECONDS)
@@ -39,12 +40,18 @@ def fetch_current_weather(city: str) -> dict:
 
     try:
         data = response.json()
+        # Estado del cielo: viene en la MISMA respuesta (no requiere otra llamada).
+        # Si OpenWeather no lo enviara, se guardan vacíos en vez de fallar.
+        sky = (data.get("weather") or [{}])[0]
         return {
             "city": data["name"],
             "temperature": data["main"]["temp"],
             "humidity": data["main"]["humidity"],
             "wind_speed": data["wind"]["speed"],
             "timestamp": datetime.fromtimestamp(data["dt"], tz=timezone.utc),
+            "condition": sky.get("main", ""),
+            "description": sky.get("description", ""),
+            "icon": sky.get("icon", ""),
         }
     except (ValueError, KeyError, TypeError) as exc:
         logger.error("Respuesta inesperada de OpenWeather (city=%s)", city)

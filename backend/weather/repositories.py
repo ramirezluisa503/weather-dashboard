@@ -13,6 +13,9 @@ def save_weather(data: dict) -> tuple[WeatherData, bool]:
             "temperature": data["temperature"],
             "humidity": data["humidity"],
             "wind_speed": data["wind_speed"],
+            "condition": data.get("condition", ""),
+            "description": data.get("description", ""),
+            "icon": data.get("icon", ""),
         },
     )
 
@@ -28,6 +31,7 @@ def list_weather(city: str | None = None):
     if city:
         queryset = queryset.filter(city=city)
     return queryset
+
 
 def get_recent_by_city(city: str, limit: int = 24) -> list[dict]:
     """Últimos `limit` registros de una ciudad, en orden cronológico (para gráficos)."""

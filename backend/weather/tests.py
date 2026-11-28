@@ -39,6 +39,9 @@ def fake_weather(city, temperature=20.0, minutes=0):
         "humidity": 70,
         "wind_speed": 3.0,
         "timestamp": BASE_TIME + timedelta(minutes=minutes),
+        "condition": "Clouds",
+        "description": "nubes dispersas",
+        "icon": "03d",
     }
 
 
@@ -71,6 +74,15 @@ class WeatherServiceTests(TestCase):
         with patch(FETCH, side_effect=OpenWeatherError("caída simulada")):
             with self.assertRaises(services.WeatherUnavailableError):
                 services.get_current_weather("Cali")
+
+    def test_guarda_el_estado_del_cielo(self):
+        with patch(FETCH, return_value=fake_weather("Bogota")):
+            result = services.get_current_weather("bogota")
+
+        self.assertEqual(result["condition"], "Clouds")
+        self.assertEqual(result["description"], "nubes dispersas")
+        self.assertEqual(result["icon"], "03d")
+        self.assertEqual(WeatherData.objects.get().icon, "03d")
 
     def test_misma_medicion_no_se_duplica(self):
         data = fake_weather("Bogota")
@@ -161,7 +173,9 @@ class HistoryEndpointTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("text/csv", response["Content-Type"])
-        self.assertEqual(lines[0], "id,city,temperature,humidity,wind_speed,timestamp")
+        self.assertEqual(
+            lines[0], "id,city,temperature,humidity,wind_speed,condition,description,timestamp"
+        )
         self.assertEqual(len(lines), 2)  # encabezado + 1 fila de Medellin
 
 @TEST_SETTINGS

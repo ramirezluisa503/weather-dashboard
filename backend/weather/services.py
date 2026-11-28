@@ -33,6 +33,9 @@ def _to_dict(record) -> dict:
         "temperature": record.temperature,
         "humidity": record.humidity,
         "wind_speed": record.wind_speed,
+        "condition": record.condition,
+        "description": record.description,
+        "icon": record.icon,
         "timestamp": record.timestamp.isoformat(),
     }
 
@@ -137,7 +140,10 @@ def get_dashboard_data(city1: str, city2: str) -> dict:
     return {"cities": cities}
 
 
-EXPORT_FIELDS = ["id", "city", "temperature", "humidity", "wind_speed", "timestamp"]
+# timestamp va al final: iter_export_rows lo separa para formatearlo
+EXPORT_FIELDS = [
+    "id", "city", "temperature", "humidity", "wind_speed", "condition", "description", "timestamp",
+]
 
 
 def iter_export_rows(city: str | None = None):
