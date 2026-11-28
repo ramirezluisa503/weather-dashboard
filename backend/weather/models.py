@@ -9,6 +9,10 @@ class WeatherData(models.Model):
     humidity = models.PositiveSmallIntegerField(help_text="Humedad relativa en %")
     wind_speed = models.FloatField(help_text="Velocidad del viento en m/s")
     timestamp = models.DateTimeField(help_text="Momento de la medición (UTC)")
+    # Estado del cielo según OpenWeather (opcionales: los registros antiguos no los tienen)
+    condition = models.CharField(max_length=30, blank=True, default="", help_text="Categoría: Clear, Clouds, Rain...")
+    description = models.CharField(max_length=100, blank=True, default="", help_text="Descripción en español")
+    icon = models.CharField(max_length=5, blank=True, default="", help_text="Código de ícono de OpenWeather, ej. 03d")
 
     class Meta:
         ordering = ["-timestamp"]

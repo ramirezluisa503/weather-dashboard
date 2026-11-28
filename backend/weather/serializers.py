@@ -24,7 +24,10 @@ class WeatherDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WeatherData
-        fields = ["id", "city", "temperature", "humidity", "wind_speed", "timestamp"]
+        fields = [
+            "id", "city", "temperature", "humidity", "wind_speed",
+            "condition", "description", "icon", "timestamp",
+        ]
         read_only_fields = fields
 
 
