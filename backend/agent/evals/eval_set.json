@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "pregunta": "¿Cuál es la temperatura promedio de Bogotá?",
+    "tipo": "estadistica",
+    "esperado": {"tool": "calcular_estadistica", "argumentos": {"ciudad": "Bogota", "metrica": "temperatura", "operacion": "promedio"}}
+  },
+  {
+    "id": 2,
+    "pregunta": "¿Cuál fue la humedad máxima registrada en Medellín?",
+    "tipo": "estadistica",
+    "esperado": {"tool": "calcular_estadistica", "argumentos": {"ciudad": "Medellin", "metrica": "humedad", "operacion": "maximo"}}
+  },
+  {
+    "id": 3,
+    "pregunta": "¿Cuál fue la temperatura mínima en Cali?",
+    "tipo": "estadistica",
+    "esperado": {"tool": "calcular_estadistica", "argumentos": {"ciudad": "Cali", "metrica": "temperatura", "operacion": "minimo"}}
+  },
+  {
+    "id": 4,
+    "pregunta": "¿Cuál es la velocidad promedio del viento en Cartagena?",
+    "tipo": "estadistica",
+    "esperado": {"tool": "calcular_estadistica", "argumentos": {"ciudad": "Cartagena", "metrica": "viento", "operacion": "promedio"}}
+  },
+  {
+    "id": 5,
+    "pregunta": "Muéstrame las últimas 3 mediciones de Bogotá",
+    "tipo": "consulta",
+    "esperado": {"tool": "consultar_clima", "argumentos": {"ciudad": "Bogota"}}
+  },
+  {
+    "id": 6,
+    "pregunta": "¿Cuál fue la temperatura máxima en Londres?",
+    "tipo": "abstencion",
+    "esperado": {"descripcion": "No hay datos de Londres: debe decirlo, sin inventar cifras"}
+  },
+  {
+    "id": 7,
+    "pregunta": "¿Cuál es el promedio de humedad?",
+    "tipo": "aclaracion",
+    "esperado": {"descripcion": "Falta la ciudad: debe preguntarla sin usar tools"}
+  },
+  {
+    "id": 8,
+    "pregunta": "¿Quién ganó el último mundial de fútbol?",
+    "tipo": "fuera_de_tema",
+    "esperado": {"descripcion": "Fuera del tema: debe explicar que solo responde sobre el clima, sin usar tools"}
+  }
+]
