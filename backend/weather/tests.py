@@ -163,3 +163,28 @@ class HistoryEndpointTests(TestCase):
         self.assertIn("text/csv", response["Content-Type"])
         self.assertEqual(lines[0], "id,city,temperature,humidity,wind_speed,timestamp")
         self.assertEqual(len(lines), 2)  # encabezado + 1 fila de Medellin
+
+@TEST_SETTINGS
+@override_settings(WEATHER_TRACKED_CITIES=["Bogota", "Ciudadfalsa"])
+class RefreshTaskTests(TestCase):
+    """Tarea periódica de Celery: refresca saltándose la caché y tolera fallos por ciudad."""
+
+    def setUp(self):
+        cache.clear()
+
+    def test_refresca_las_ciudades_y_tolera_fallos(self):
+        from .tasks import refresh_tracked_cities
+
+        cache.set("weather:latest:bogota", {"dato": "viejo"})  # aunque haya caché, debe consultar
+
+        def fetch(city):
+            if city == "Ciudadfalsa":
+                raise CityNotFoundError(f"Ciudad no encontrada: {city}")
+            return fake_weather(city)
+
+        with patch(FETCH, side_effect=fetch) as mocked:
+            refreshed = refresh_tracked_cities()
+
+        self.assertEqual(refreshed, 1)  # Bogota sí; Ciudadfalsa falló sin detener la tarea
+        self.assertEqual(mocked.call_count, 2)
+        self.assertTrue(WeatherData.objects.filter(city="Bogota").exists())
