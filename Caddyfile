@@ -1,0 +1,22 @@
+# Caddy: proxy inverso con HTTPS automático (Let's Encrypt). Solo se usa en producción.
+{$SITE_DOMAIN} {
+	encode gzip zstd
+
+	# API REST y WebSocket → backend (Daphne). Caddy reenvía los WebSocket automáticamente.
+	@backend path /api/* /ws/*
+	handle @backend {
+		reverse_proxy backend:8000
+	}
+
+	# Todo lo demás → frontend (Nginx con la SPA de React)
+	handle {
+		reverse_proxy frontend:80
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
