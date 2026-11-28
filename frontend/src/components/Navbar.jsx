@@ -1,6 +1,7 @@
 const VIEWS = [
   { value: 'comparison', label: 'Comparación' },
   { value: 'history', label: 'Histórico' },
+  { value: 'assistant', label: 'Asistente' },
 ];
 
 const STATUS_LABELS = {

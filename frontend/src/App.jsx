@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
-import { Alert, Spin, message } from 'antd';
+import { Alert, FloatButton, Spin, message } from 'antd';
+import { RobotOutlined } from '@ant-design/icons';
+import AssistantPanel from './components/AssistantPanel';
 import CitySelector from './components/CitySelector';
 import ComparisonChart from './components/ComparisonChart';
 import HistoryTable from './components/HistoryTable';
@@ -86,7 +88,24 @@ export default function App() {
         <div className="view" hidden={view !== 'history'}>
           <HistoryTable refreshKey={historyVersion} />
         </div>
+
+        {/* El chat también se oculta en vez de desmontarse: conserva la conversación abierta */}
+        <div className="view" hidden={view !== 'assistant'}>
+          <AssistantPanel />
+        </div>
       </main>
+
+      {/* Acceso flotante al asistente desde las otras pestañas (usa el mismo estado que la navbar) */}
+      {view !== 'assistant' && (
+        <FloatButton
+          className="assistant-fab"
+          type="primary"
+          icon={<RobotOutlined />}
+          tooltip="Pregúntale al asistente"
+          aria-label="Abrir el asistente virtual"
+          onClick={() => setView('assistant')}
+        />
+      )}
     </>
   );
 }
