@@ -159,6 +159,12 @@ REST_FRAMEWORK = {
     "NUM_PROXIES": int(os.environ.get("DJANGO_NUM_PROXIES", "0")),
 }
 
+# Detrás de Caddy la conexión del usuario es HTTPS, pero Caddy le habla a Django en HTTP por la red
+# interna: se confía en X-Forwarded-Proto SOLO si hay un proxy delante (si no, se podría falsificar).
+# Así los enlaces que arma la API (paginación "next"/"previous") salen con https://.
+if REST_FRAMEWORK["NUM_PROXIES"] > 0:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # Documentación OpenAPI / Swagger
 SPECTACULAR_SETTINGS = {
     "TITLE": "Weather Dashboard API",
