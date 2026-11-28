@@ -49,6 +49,18 @@ def _notify_new_weather(weather: dict) -> None:
         logger.exception("No se pudo emitir el evento WebSocket city=%s", weather.get("city"))
 
 
+def _store_and_notify(city: str, data: dict) -> dict:
+    """Guarda la medición, actualiza la caché y avisa por WebSocket si es nueva."""
+    data["city"] = city
+    record, created = repositories.save_weather(data)
+    result = _to_dict(record)
+    cache.set(_cache_key(city), result)
+
+    if created:
+        logger.info("Nuevo registro id=%s city=%s", record.id, city)
+        _notify_new_weather(result)
+    return result
+
 
 def get_current_weather(city: str) -> dict:
     """Clima actual de una ciudad: caché -> OpenWeather -> fallback a la base de datos."""
@@ -77,21 +89,19 @@ def get_current_weather(city: str) -> dict:
             raise WeatherUnavailableError(f"No hay datos disponibles para {city}") from exc
         return {**_to_dict(latest), "source": "database"}
 
-        # 4. Guardar en la BD y en la caché
-    data["city"] = city
-    record, created = repositories.save_weather(data)
-    result = _to_dict(record)
-    cache.set(key, result)
-
-    # 5. Tiempo real: avisar solo si el registro es NUEVO
-    if created:
-        logger.info("Nuevo registro id=%s city=%s", record.id, city)
-        _notify_new_weather(result)
-
+    # 4. Guardar, cachear y avisar por WebSocket
+    result = _store_and_notify(city, data)
     return {**result, "source": "api"}
 
 
+def refresh_city(city: str) -> dict:
+    """Consulta OpenWeather SIN pasar por la caché (para el refresco periódico de Celery).
 
+    Si usara la caché, durante 10 minutos encontraría el dato guardado y no traería nada nuevo.
+    """
+    city = normalize_city(city)
+    data = fetch_current_weather(city)
+    return _store_and_notify(city, data)
 
 
 def list_history(city: str | None = None):

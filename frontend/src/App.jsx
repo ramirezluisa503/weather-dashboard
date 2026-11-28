@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import { Alert, Spin, message } from 'antd';
-import Background from './components/Background';
 import CitySelector from './components/CitySelector';
 import ComparisonChart from './components/ComparisonChart';
 import HistoryTable from './components/HistoryTable';
@@ -8,7 +7,6 @@ import Navbar from './components/Navbar';
 import WeatherCard from './components/WeatherCard';
 import useDashboard from './hooks/useDashboard';
 import useWeatherSocket from './hooks/useWeatherSocket';
-import { getTemperatureTheme } from './utils/weatherTheme';
 
 export default function App() {
   const [view, setView] = useState('comparison');
@@ -38,16 +36,9 @@ export default function App() {
 
   const socketStatus = useWeatherSocket(handleSocketEvent);
 
-  // Cada mitad del fondo usa el tema de SU ciudad (mientras carga, el tema templado)
-  const defaultTheme = getTemperatureTheme(15);
-  const [firstTheme, secondTheme] = data
-    ? data.cities.map((city) => getTemperatureTheme(city.current.temperature))
-    : [defaultTheme, defaultTheme];
-
   return (
     <>
       {messageContext}
-      <Background firstImage={firstTheme.image} secondImage={secondTheme.image} />
       <main className="app">
         <Navbar view={view} onViewChange={setView} socketStatus={socketStatus} />
 
@@ -72,7 +63,7 @@ export default function App() {
 
           {/* Spinner grande solo en la primera carga (todavía no hay datos) */}
           {!data && loading && (
-            <div className="glass loading-card">
+            <div className="panel loading-card">
               <Spin size="large" />
               <p>Consultando el clima...</p>
             </div>

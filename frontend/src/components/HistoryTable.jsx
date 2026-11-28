@@ -66,7 +66,7 @@ export default function HistoryTable({ refreshKey }) {
   };
 
   return (
-    <section className="history-card glass glass--solid">
+    <section className="history-card panel">
       <header className="history-card__header">
         <h2>Histórico de mediciones</h2>
         <div className="history-card__actions">

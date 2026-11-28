@@ -125,6 +125,28 @@ CHANNEL_LAYERS = {
     }
 }
 
+# Celery: tareas periódicas (refresco automático del clima)
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/1")
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_TIMEZONE = "UTC"
+
+WEATHER_TRACKED_CITIES = [
+    city.strip()
+    for city in os.environ.get("WEATHER_TRACKED_CITIES", "Bogota,Medellin").split(",")
+    if city.strip()
+]
+WEATHER_REFRESH_SECONDS = int(os.environ.get("WEATHER_REFRESH_SECONDS", "600"))
+
+CELERY_BEAT_SCHEDULE = {
+    "refrescar-clima": {
+        "task": "weather.tasks.refresh_tracked_cities",
+        "schedule": WEATHER_REFRESH_SECONDS,
+    },
+}
+
+
+
+
 
 # Django REST Framework
 REST_FRAMEWORK = {

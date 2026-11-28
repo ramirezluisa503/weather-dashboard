@@ -187,7 +187,7 @@ weather-dashboard/
 
 ---
 
-## 🔌 API
+##  API
 
 | Método | Endpoint | Descripción |
 |---|---|---|

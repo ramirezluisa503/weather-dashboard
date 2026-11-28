@@ -23,7 +23,7 @@ const METRIC_OPTIONS = Object.entries(METRICS).map(([value, { label }]) => ({
 }));
 
 // Color alternativo si las dos ciudades tienen el mismo tema (mismo color de acento)
-const FALLBACK_COLOR = '#c4b5fd';
+const FALLBACK_COLOR = '#7c3aed';
 
 const timeFormatter = new Intl.DateTimeFormat('es-CO', {
   day: '2-digit',
@@ -59,7 +59,7 @@ export default function ComparisonChart({ cities }) {
   const colors = getLineColors(cities);
 
   return (
-    <section className="chart-card glass">
+    <section className="chart-card panel">
       <header className="chart-card__header">
         <h2>Comparación en el tiempo</h2>
         <Segmented
@@ -81,7 +81,7 @@ export default function ComparisonChart({ cities }) {
             margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
           >
             <CartesianGrid
-              stroke="rgba(255, 255, 255, 0.12)"
+              stroke="#e2e8f0"
               strokeDasharray="3 3"
             />
             <XAxis
@@ -91,22 +91,23 @@ export default function ComparisonChart({ cities }) {
               domain={['dataMin', 'dataMax']}
               tickFormatter={(time) => timeFormatter.format(time)}
               minTickGap={24}
-              stroke="rgba(255, 255, 255, 0.7)"
+              stroke="#64748b"
               fontSize={12}
             />
             <YAxis
               unit={unit}
               width={64}
-              stroke="rgba(255, 255, 255, 0.7)"
+              stroke="#64748b"
               fontSize={12}
             />
             <Tooltip
               labelFormatter={(time) => timeFormatter.format(time)}
               formatter={(value, name) => [`${value} ${unit}`, name]}
               contentStyle={{
-                background: 'rgba(15, 23, 42, 0.9)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
                 borderRadius: 12,
+                boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
               }}
             />
             <Legend />
