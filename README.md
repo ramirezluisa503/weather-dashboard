@@ -4,6 +4,8 @@ Dashboard full stack que **compara el clima de dos ciudades en tiempo real**. Co
 
 ![Captura del dashboard comparando Bogotá y Cartagena](docs/captura-dashboard.jpg)
 
+> 🌐 **Demo en vivo:** **https://weather-dashboard.duckdns.org** (AWS EC2 · HTTPS) · [Swagger](https://weather-dashboard.duckdns.org/api/docs/)
+>
 > **Video de presentación:** [enlace pendiente]
 
 **Stack:** Django 6 · Django REST Framework · Django Channels (Daphne) · Celery · PostgreSQL 17 · Redis 7 · LiteLLM + Gemini · React 19 · Vite · Ant Design · Recharts · Nginx · Docker Compose
@@ -87,6 +89,8 @@ Definidas en `.env` (no se versiona) a partir de [`.env.example`](.env.example) 
 | `LLM_MODEL` | Modelo del asistente en formato LiteLLM `proveedor/modelo` | `gemini/gemini-3.5-flash-lite` |
 | `LLM_API_KEY` | API key del proveedor del modelo (solo la usa el backend) | — |
 | `LLM_FALLBACK_MODELS` | Modelos de respaldo si el principal está saturado o sin cupo, separados por coma | `gemini/gemini-3.1-flash-lite` |
+| `SITE_DOMAIN` | Solo producción: dominio público para el que Caddy obtiene el certificado HTTPS | `weather-dashboard.duckdns.org` |
+| `DJANGO_NUM_PROXIES` | Proxies delante de Django: `1` detrás de Caddy (el límite de peticiones usa la IP real y los enlaces salen en `https`); `0` en local | `0` |
 
 El frontend usa además `VITE_API_URL` (argumento de build, por defecto `http://localhost:8000`): es la URL del backend **tal como la ve el navegador**, no el contenedor.
 
@@ -122,6 +126,8 @@ Cada capa solo llama a la de abajo: las views nunca hablan directamente con la b
 weather-dashboard/
 ├── docker-compose.yml             # 6 servicios: db, redis, backend, frontend,
 │                                  #   celery-worker, celery-beat
+├── docker-compose.prod.yml        # ajustes de producción (Caddy, Daphne, sin puertos)
+├── Caddyfile                      # proxy inverso con HTTPS automático (producción)
 ├── .env.example                   # variables de entorno (sin valores reales)
 ├── README.md
 │
@@ -263,7 +269,7 @@ Cada respuesta del clima actual incluye `"source": "cache" | "api" | "database"`
 - **Validación de entrada** con serializers: lista blanca de caracteres para la ciudad (letras con tildes, espacios, `-`, `.`, `'`) y longitud máxima → `400` con mensaje en español.
 - **SQL injection:** el ORM de Django usa consultas parametrizadas. **XSS:** la API responde JSON, la validación rechaza `<` y `>`, y React escapa el contenido.
 - **CORS** con lista blanca de orígenes (no se permite cualquier origen). **WebSockets** protegidos con `AllowedHostsOriginValidator`, ya que no tienen protección CSRF. El clima solo expone `GET`; el chat usa `POST`, y **CSRF no aplica** porque la API no usa sesiones ni cookies (se deja explícito con `authentication_classes = []`).
-- **Secretos** solo en `.env` (ignorado por Git); `.env.example` sin valores reales. La API key del LLM solo la usa el backend: nunca llega al navegador ni se registra en los logs. PostgreSQL y Redis no publican puertos fuera de Docker.
+- **Secretos** solo en `.env` (ignorado por Git); `.env.example` sin valores reales. La API key del LLM solo la usa el backend: nunca llega al navegador ni se registra en los logs. PostgreSQL y Redis no publican puertos fuera de Docker; en producción tampoco el backend ni el frontend (ver [Despliegue](#-despliegue-aws)).
 - **Asistente:** tools con parámetros cerrados y validados (sin SQL, shell ni URLs), límite de 10 preguntas por minuto por IP, preguntas de máximo 1000 caracteres, máximo 4 vueltas LLM ⇄ tools y timeout de 30 s. El texto del LLM se muestra como texto de React (las negritas se convierten en elementos, nunca en HTML), así que no puede inyectar scripts.
 
 ---
@@ -315,7 +321,8 @@ docker compose exec backend python manage.py test -v 2
 - **Sin tests del frontend:** se verificó manualmente y con capturas en distintos tamaños de pantalla.
 - **El bundle de JavaScript supera los 500 KB** (Ant Design + Recharts). Mejora: división de código con `import()` dinámico.
 - Los registros guardados antes de agregar el estado del cielo no tienen ícono (los campos quedan vacíos); se completan solos con las mediciones nuevas.
-- **El backend usa el servidor de desarrollo ASGI** (`runserver` con Daphne) con `DEBUG=True`, pensado para la ejecución local de la prueba. En producción: Daphne/Uvicorn directo, `DEBUG=False` y archivos estáticos servidos aparte.
+- **En local, el backend usa el servidor de desarrollo** (`runserver` con Daphne) con `DEBUG=True` y recarga automática; en producción corre Daphne directo con `DEBUG=False`. El panel `/admin/` no se publica en producción (sus estilos necesitarían servir archivos estáticos aparte).
+- **Despliegue en una sola máquina** (`t3.small`, 2 GB): sin alta disponibilidad, PostgreSQL en un contenedor (no un servicio administrado como RDS) y sin copias de seguridad automáticas. Las actualizaciones son manuales (`git pull`), sin CI/CD.
 - Frontend en **JavaScript** por tiempo; con más tiempo usaría TypeScript.
 - **Asistente:** el filtro compara el nombre de la ciudad tal como se guardó: *"Tokio"* no encuentra los datos guardados como *"Tokyo"*. Se mitiga enviando al modelo la lista de ciudades guardadas; mejora: alias o búsqueda sin tildes. Depende del cupo gratuito de Gemini (mitigado con modelo de respaldo y límite de peticiones), responde sin streaming y no hay usuarios: todas las conversaciones son compartidas.
 - Mejoras posibles: integración continua (GitHub Actions) para correr los tests en cada push.
@@ -415,6 +422,45 @@ La respuesta esperada se calcula **en el momento** con las mismas tools, porque 
 | **Estadísticas en la BD** | Un LLM puede equivocarse con la aritmética; PostgreSQL no | Enviar las filas al LLM para que calcule |
 | **Respuesta síncrona** | Simple: una pregunta tarda pocos segundos y el frontend muestra el estado del run | Streaming o tarea en Celery (más complejidad para este alcance) |
 | **Límite de 10 preguntas por minuto** | Cada pregunta consume cupo del LLM; se revisa antes de llamarlo | Sin límite |
+
+---
+
+## ☁️ Despliegue (AWS)
+
+La aplicación está desplegada en **https://weather-dashboard.duckdns.org**, con el **mismo `docker compose`** que en local más un archivo de ajustes de producción.
+
+```
+Internet ──https──▶ Caddy :443 ──┬─ /api/*, /ws/* ─▶ backend:8000 (Daphne)
+ (http :80 → https)              └─ lo demás ───────▶ frontend:80 (Nginx + React)
+                    PostgreSQL · Redis · Celery: solo en la red interna de Docker
+```
+
+| Pieza | Elección | Por qué |
+|---|---|---|
+| Servidor | **AWS EC2 `t3.small`** (2 vCPU, 2 GB + 2 GB de swap), Ubuntu, región Ohio | Plan gratuito de AWS (créditos); 2 GB holgados para los 7 contenedores |
+| Dominio | **DuckDNS** (`weather-dashboard.duckdns.org`) + **IP elástica** | Subdominio gratuito; la IP fija no cambia al reiniciar la instancia |
+| HTTPS | **Caddy** como proxy inverso | Certificado de Let's Encrypt automático (obtención, renovación y redirección de HTTP a HTTPS) |
+| Configuración | [`docker-compose.prod.yml`](docker-compose.prod.yml) sobre el compose base | Sin duplicar el compose: agrega Caddy, cambia `runserver` por Daphne, quita los puertos de backend y frontend (`!reset`) y reinicia los servicios si se caen |
+
+**Seguridad del despliegue**
+
+- **Un solo punto de entrada:** solo Caddy publica puertos (80/443). El *security group* de AWS abre 80 y 443 a internet y **SSH solo para mi IP**; los puertos 8000, 5173, 5432 y 6379 están cerrados desde afuera.
+- **Mismo dominio para el frontend y la API:** sin problemas de CORS, y el WebSocket va cifrado (`wss://`).
+- `DEBUG=False`, contraseñas de PostgreSQL y `SECRET_KEY` generadas aleatoriamente en el servidor, `.env` con permisos `600` (nunca en Git), cabeceras HSTS, `nosniff` y `Referrer-Policy`, y `/admin/` sin publicar.
+- **IP real detrás del proxy** (`DJANGO_NUM_PROXIES=1`): el límite de 10 preguntas por minuto se cuenta por usuario y no para todos juntos, y los enlaces de la API salen en `https`.
+- Cuenta de AWS con **MFA** y en el plan gratuito (sin cobros; el consumo sale de los créditos).
+
+**Cómo desplegarlo** (en un servidor con Docker y un dominio apuntando a su IP):
+
+```bash
+git clone https://github.com/ramirezluisa503/weather-dashboard.git && cd weather-dashboard
+cp .env.example .env     # completar: API keys, contraseñas, DJANGO_DEBUG=False,
+                         # DJANGO_ALLOWED_HOSTS, CORS_ALLOWED_ORIGINS, SITE_DOMAIN, DJANGO_NUM_PROXIES=1
+echo "COMPOSE_FILE=docker-compose.yml:docker-compose.prod.yml" >> .env
+docker compose up -d --build
+```
+
+**Actualizar:** `git pull` y `docker compose restart backend celery-worker celery-beat`; si cambian dependencias o Dockerfiles, `docker compose up -d --build`.
 
 ---
 
